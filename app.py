@@ -12,6 +12,7 @@ import os
 import time
 import copy
 
+
 app = Flask(__name__)
 app.secret_key = "poltrada-optimasi-rute-2026"
 
@@ -27,8 +28,6 @@ if not TEMPLATE_EXCEL.exists():
 
 # ============================================================
 # DATA AKTIF
-# Data pengguna disimpan sementara selama aplikasi berjalan.
-# Excel hanya digunakan sebagai template/contoh laporan.
 # ============================================================
 
 ACTIVE = {
@@ -51,8 +50,8 @@ ACTIVE = {
 HISTORY = []
 REDO_STACK = []
 
-# Konsumsi internal untuk perhitungan biaya BBM.
-# Tidak ditampilkan sebagai pengaturan pengguna.
+IMPORT_PREVIEW = []
+
 BBM_KM_PER_LITER = 5.0
 
 
@@ -69,8 +68,32 @@ def clean(v):
 
 
 def num(v, default=0):
+    if v is None:
+        return default
+
+    if isinstance(v, (int, float)):
+        try:
+            return float(v)
+        except Exception:
+            return default
+
+    value = str(v).strip()
+
+    if not value:
+        return default
+
     try:
-        return float(v)
+        if "." in value and "," in value:
+            value = value.replace(".", "")
+            value = value.replace(",", ".")
+            return float(value)
+
+        if "," in value:
+            value = value.replace(",", ".")
+            return float(value)
+
+        return float(value)
+
     except Exception:
         return default
 
@@ -114,6 +137,226 @@ def redo():
 
 
 # ============================================================
+# IMPORT EXCEL
+# ============================================================
+
+def normalize_header(value):
+    text = clean(value).lower()
+
+    for char in [
+        " ",
+        "_",
+        "-",
+        "(",
+        ")",
+        ".",
+        "/",
+    ]:
+        text = text.replace(char, "")
+
+    return text
+
+
+def find_excel_column(headers, aliases):
+    normalized_headers = {
+        normalize_header(header): index
+        for index, header in enumerate(headers)
+    }
+
+    for alias in aliases:
+        normalized_alias = normalize_header(alias)
+
+        if normalized_alias in normalized_headers:
+            return normalized_headers[normalized_alias]
+
+    return None
+
+
+def read_retailer_excel(file_storage):
+    if file_storage is None:
+        raise ValueError("File Excel belum dipilih.")
+
+    filename = clean(file_storage.filename)
+
+    if not filename:
+        raise ValueError("Nama file Excel tidak ditemukan.")
+
+    extension = Path(filename).suffix.lower()
+
+    if extension not in [".xlsx", ".xlsm"]:
+        raise ValueError(
+            "Format file tidak didukung. Gunakan file Excel .xlsx atau .xlsm."
+        )
+
+    try:
+        workbook = load_workbook(
+            file_storage,
+            read_only=True,
+            data_only=True
+        )
+    except Exception as e:
+        raise ValueError(
+            f"File Excel tidak dapat dibaca: {e}"
+        )
+
+    if not workbook.sheetnames:
+        workbook.close()
+        raise ValueError("File Excel tidak memiliki worksheet.")
+
+    worksheet = workbook[workbook.sheetnames[0]]
+
+    rows = list(
+        worksheet.iter_rows(values_only=True)
+    )
+
+    workbook.close()
+
+    if not rows:
+        raise ValueError("Worksheet Excel kosong.")
+
+    headers = list(rows[0])
+
+    kode_col = find_excel_column(
+        headers,
+        [
+            "KODE",
+            "KODE OUTLET",
+            "KODE RETAILER",
+        ]
+    )
+
+    nama_col = find_excel_column(
+        headers,
+        [
+            "NAMA",
+            "NAMA OUTLET",
+            "NAMA INDOMARET",
+            "NAMA RETAILER",
+        ]
+    )
+
+    alamat_col = find_excel_column(
+        headers,
+        [
+            "ALAMAT",
+            "ALAMAT OUTLET",
+            "ALAMAT LENGKAP",
+        ]
+    )
+
+    permintaan_col = find_excel_column(
+        headers,
+        [
+            "PERMINTAAN",
+            "PERMINTAAN KG",
+            "PERMINTAAN (KG)",
+            "DEMAND",
+            "DEMAND KG",
+        ]
+    )
+
+    missing = []
+
+    if kode_col is None:
+        missing.append("KODE")
+
+    if nama_col is None:
+        missing.append("NAMA INDOMARET")
+
+    if alamat_col is None:
+        missing.append("ALAMAT")
+
+    if permintaan_col is None:
+        missing.append("PERMINTAAN")
+
+    if missing:
+        raise ValueError(
+            "Kolom Excel belum lengkap: " +
+            ", ".join(missing)
+        )
+
+    result = []
+    seen_codes = set()
+
+    for row_number, row in enumerate(rows[1:], start=2):
+
+        if not any(clean(value) for value in row):
+            continue
+
+        kode = clean(
+            row[kode_col]
+            if kode_col < len(row)
+            else ""
+        ).upper()
+
+        nama = clean(
+            row[nama_col]
+            if nama_col < len(row)
+            else ""
+        )
+
+        alamat = clean(
+            row[alamat_col]
+            if alamat_col < len(row)
+            else ""
+        )
+
+        permintaan_value = (
+            row[permintaan_col]
+            if permintaan_col < len(row)
+            else None
+        )
+
+        permintaan = num(
+            permintaan_value,
+            0
+        )
+
+        if not kode:
+            raise ValueError(
+                f"Baris Excel {row_number}: KODE belum diisi."
+            )
+
+        if not nama:
+            raise ValueError(
+                f"Baris Excel {row_number}: NAMA INDOMARET belum diisi."
+            )
+
+        if not alamat:
+            raise ValueError(
+                f"Baris Excel {row_number}: ALAMAT belum diisi."
+            )
+
+        if permintaan <= 0:
+            raise ValueError(
+                f"Baris Excel {row_number}: PERMINTAAN harus lebih dari 0."
+            )
+
+        if kode in seen_codes:
+            raise ValueError(
+                f"Kode outlet {kode} muncul lebih dari satu kali."
+            )
+
+        seen_codes.add(kode)
+
+        result.append({
+            "kode": kode,
+            "nama": nama,
+            "alamat": alamat,
+            "permintaan": permintaan,
+            "lat": None,
+            "lon": None,
+        })
+
+    if not result:
+        raise ValueError(
+            "Tidak ada data outlet yang dapat diimport."
+        )
+
+    return result
+
+
+# ============================================================
 # API
 # ============================================================
 
@@ -121,7 +364,10 @@ def get_json(url, timeout=60):
     req = Request(
         url,
         headers={
-            "User-Agent": "Poltrada-Bali-Sistem-Optimasi/3.0"
+            "User-Agent": (
+                "Poltrada-Bali-Sistem-Optimasi/4.0 "
+                "(routing distribution project)"
+            )
         }
     )
 
@@ -131,24 +377,33 @@ def get_json(url, timeout=60):
         )
 
 
-def geocode(address):
+def geocode(address, name=""):
+    address = clean(address)
+    name = clean(name)
+
+    if name:
+        query = f"{name}, {address}"
+    else:
+        query = address
+
     params = urlencode({
-        "q": address,
+        "q": query,
         "format": "json",
         "limit": 1,
         "countrycodes": "id",
         "addressdetails": 1,
     })
 
-    data = get_json(
+    url = (
         "https://nominatim.openstreetmap.org/search?"
-        + params,
-        45
+        + params
     )
+
+    data = get_json(url, 45)
 
     if not data:
         raise ValueError(
-            f"Koordinat tidak ditemukan untuk alamat: {address}"
+            f"Koordinat tidak ditemukan untuk: {query}"
         )
 
     return (
@@ -164,7 +419,8 @@ def osrm_table(points):
     )
 
     url = (
-        f"https://router.project-osrm.org/table/v1/driving/"
+        "https://router.project-osrm.org/"
+        "table/v1/driving/"
         f"{coords}"
         "?annotations=distance,duration"
     )
@@ -183,6 +439,7 @@ def osrm_table(points):
 
 
 def calculate_api_matrix():
+
     if not ACTIVE["gudang"]["alamat"]:
         raise ValueError(
             "Alamat gudang belum diisi."
@@ -193,29 +450,32 @@ def calculate_api_matrix():
             "Belum ada data outlet."
         )
 
-    # Geocoding gudang
     glat, glon = geocode(
-        ACTIVE["gudang"]["alamat"]
+        ACTIVE["gudang"]["alamat"],
+        ACTIVE["gudang"].get("nama", "")
     )
 
     ACTIVE["gudang"]["lat"] = glat
     ACTIVE["gudang"]["lon"] = glon
 
-    # Geocoding outlet
     for outlet in ACTIVE["outlet"]:
+
         lat, lon = geocode(
-            outlet["alamat"]
+            outlet["alamat"],
+            outlet.get("nama", "")
         )
 
         outlet["lat"] = lat
         outlet["lon"] = lon
 
-        # Memberi jeda agar penggunaan Nominatim tetap wajar.
         time.sleep(1)
 
     labels = (
         ["GUDANG"]
-        + [o["kode"] for o in ACTIVE["outlet"]]
+        + [
+            o["kode"]
+            for o in ACTIVE["outlet"]
+        ]
     )
 
     points = [
@@ -239,10 +499,12 @@ def calculate_api_matrix():
     matrix_time = {}
 
     for i, a in enumerate(labels):
+
         matrix_distance[a] = {}
         matrix_time[a] = {}
 
         for j, b in enumerate(labels):
+
             matrix_distance[a][b] = round(
                 distances[i][j] / 1000,
                 3
@@ -268,6 +530,7 @@ def calculate_api_matrix():
 # ============================================================
 
 def route_distance(route, matrix):
+
     return sum(
         matrix[route[i]][route[i + 1]]
         for i in range(len(route) - 1)
@@ -275,12 +538,14 @@ def route_distance(route, matrix):
 
 
 def nearest_neighbor(customers, matrix):
-    remaining = set(customers)
 
+    remaining = set(customers)
     current = "GUDANG"
+
     route = ["GUDANG"]
 
     while remaining:
+
         nxt = min(
             remaining,
             key=lambda x: (
@@ -299,6 +564,7 @@ def nearest_neighbor(customers, matrix):
 
 
 def sweep_order(outlets):
+
     depot = ACTIVE["gudang"]
 
     dlat = depot["lat"]
@@ -320,6 +586,7 @@ def sweep_order(outlets):
 
 
 def vrp_allocate(outlets):
+
     k = int(ACTIVE["jumlah_kendaraan"])
     capacity = float(ACTIVE["kapasitas"])
 
@@ -336,6 +603,7 @@ def vrp_allocate(outlets):
         )
 
     ordered = sweep_order(outlets)
+
     n = len(ordered)
 
     demand = {
@@ -360,11 +628,13 @@ def vrp_allocate(outlets):
                 start + 1,
                 n - parts + 2
             ):
+
                 for rest in partitions(
                     seq,
                     parts - 1,
                     cut
                 ):
+
                     yield [
                         seq[start:cut]
                     ] + rest
@@ -376,10 +646,7 @@ def vrp_allocate(outlets):
                 + ordered[:rotation]
             )
 
-            for groups in partitions(
-                seq,
-                k
-            ):
+            for groups in partitions(seq, k):
 
                 loads = [
                     sum(
@@ -400,10 +667,7 @@ def vrp_allocate(outlets):
                 balance = sum(
                     (load - avg) ** 2
                     for load in loads
-                ) / max(
-                    avg ** 2,
-                    1
-                )
+                ) / max(avg ** 2, 1)
 
                 if (
                     best is None
@@ -416,12 +680,8 @@ def vrp_allocate(outlets):
 
     if best is None:
 
-        groups = [
-            []
-            for _ in range(k)
-        ]
-
-        loads = [0] * k
+        groups = [[] for _ in range(k)]
+        loads = [0 for _ in range(k)]
 
         for o in ordered:
 
@@ -457,14 +717,10 @@ def build_result(
     matrix_distance,
     matrix_time
 ):
+
     outlets = ACTIVE["outlet"]
 
     groups = vrp_allocate(outlets)
-
-    # --------------------------------------------------------
-    # PEMBANDING AWAL
-    # Urutan input pengguna dibagi sesuai kapasitas.
-    # --------------------------------------------------------
 
     baseline_groups = []
 
@@ -479,8 +735,8 @@ def build_result(
             current
             and load + q > ACTIVE["kapasitas"]
         ):
-            baseline_groups.append(current)
 
+            baseline_groups.append(current)
             current = []
             load = 0
 
@@ -505,16 +761,9 @@ def build_result(
             matrix_distance
         )
 
-    # --------------------------------------------------------
-    # RUTE HASIL OPTIMASI
-    # --------------------------------------------------------
-
     routes = []
 
-    for idx, group in enumerate(
-        groups,
-        1
-    ):
+    for idx, group in enumerate(groups, 1):
 
         codes = [
             o["kode"]
@@ -542,13 +791,11 @@ def build_result(
         )
 
         fuel_liter = (
-            distance
-            / BBM_KM_PER_LITER
+            distance / BBM_KM_PER_LITER
         )
 
         fuel_cost = (
-            fuel_liter
-            * ACTIVE["harga_bbm"]
+            fuel_liter * ACTIVE["harga_bbm"]
         )
 
         driver_cost = (
@@ -556,8 +803,7 @@ def build_result(
         ) * ACTIVE["biaya_supir"]
 
         operational_cost = (
-            fuel_cost
-            + driver_cost
+            fuel_cost + driver_cost
         )
 
         routes.append({
@@ -566,9 +812,7 @@ def build_result(
             "route": route,
             "muatan": load,
             "utilisasi": (
-                load
-                / ACTIVE["kapasitas"]
-                * 100
+                load / ACTIVE["kapasitas"] * 100
             ),
             "jarak": distance,
             "waktu": travel_time,
@@ -583,15 +827,10 @@ def build_result(
         for r in routes
     )
 
-    saving = (
-        baseline_distance
-        - optimized
-    )
+    saving = baseline_distance - optimized
 
     percent = (
-        saving
-        / baseline_distance
-        * 100
+        saving / baseline_distance * 100
         if baseline_distance
         else 0
     )
@@ -603,49 +842,32 @@ def build_result(
 
     result = {
         "jumlah_outlet": len(outlets),
-
         "total_muatan": sum(
             float(o["permintaan"])
             for o in outlets
         ),
-
         "jarak_awal": baseline_distance,
-
         "jarak_optimasi": optimized,
-
         "penghematan": saving,
-
         "persen": percent,
-
         "total_waktu": sum(
             r["waktu"]
             for r in routes
         ),
-
         "total_biaya": total_cost,
-
         "rute": routes,
-
         "timestamp": now_text(),
-
         "api_status": ACTIVE["api_status"],
-
         "harga_bbm": ACTIVE["harga_bbm"],
-
         "biaya_supir": ACTIVE["biaya_supir"],
-
         "metode": (
             "VRP (pembagian berdasarkan kapasitas) "
-            "→ Nearest Neighbor "
-            "(urutan kunjungan)"
+            "→ Nearest Neighbor (urutan kunjungan)"
         ),
     }
 
     ACTIVE["hasil"] = result
-
-    ACTIVE["last_process"] = (
-        result["timestamp"]
-    )
+    ACTIVE["last_process"] = result["timestamp"]
 
     return result
 
@@ -655,9 +877,11 @@ def build_result(
 # ============================================================
 
 def style_sheet(ws):
+
     blue = "0759A6"
 
     for cell in ws[1]:
+
         cell.fill = PatternFill(
             "solid",
             fgColor=blue
@@ -676,9 +900,7 @@ def style_sheet(ws):
 def make_download_file():
 
     if TEMPLATE_EXCEL.exists():
-        wb = load_workbook(
-            TEMPLATE_EXCEL
-        )
+        wb = load_workbook(TEMPLATE_EXCEL)
     else:
         from openpyxl import Workbook
         wb = Workbook()
@@ -692,13 +914,7 @@ def make_download_file():
         if name in wb.sheetnames:
             del wb[name]
 
-    # --------------------------------------------------------
-    # REKAP WEB
-    # --------------------------------------------------------
-
-    info = wb.create_sheet(
-        "REKAP WEB"
-    )
+    info = wb.create_sheet("REKAP WEB")
 
     info.append([
         "INFORMASI SISTEM",
@@ -769,13 +985,7 @@ def make_download_file():
     info.column_dimensions["A"].width = 34
     info.column_dimensions["B"].width = 75
 
-    # --------------------------------------------------------
-    # DATA INPUT WEB
-    # --------------------------------------------------------
-
-    data_ws = wb.create_sheet(
-        "DATA INPUT WEB"
-    )
+    data_ws = wb.create_sheet("DATA INPUT WEB")
 
     data_ws.append([
         "KODE",
@@ -807,12 +1017,7 @@ def make_download_file():
         "E": 16,
         "F": 16
     }.items():
-
         data_ws.column_dimensions[c].width = w
-
-    # --------------------------------------------------------
-    # HASIL OPTIMASI WEB
-    # --------------------------------------------------------
 
     if ACTIVE["hasil"]:
 
@@ -827,81 +1032,50 @@ def make_download_file():
             "HASIL"
         ])
 
-        for row in [
-
+        rows = [
             [
                 "Jarak Awal (km)",
-                round(
-                    hasil["jarak_awal"],
-                    2
-                )
+                round(hasil["jarak_awal"], 2)
             ],
-
             [
                 "Jarak Optimasi (km)",
-                round(
-                    hasil["jarak_optimasi"],
-                    2
-                )
+                round(hasil["jarak_optimasi"], 2)
             ],
-
             [
                 "Penghematan Jarak (km)",
-                round(
-                    hasil["penghematan"],
-                    2
-                )
+                round(hasil["penghematan"], 2)
             ],
-
             [
                 "Penghematan (%)",
-                round(
-                    hasil["persen"],
-                    2
-                )
+                round(hasil["persen"], 2)
             ],
-
             [
                 "Total Muatan (kg)",
-                round(
-                    hasil["total_muatan"],
-                    2
-                )
+                round(hasil["total_muatan"], 2)
             ],
-
             [
                 "Total Waktu (menit)",
-                round(
-                    hasil["total_waktu"],
-                    1
-                )
+                round(hasil["total_waktu"], 1)
             ],
-
             [
                 "Total Biaya (Rp)",
-                round(
-                    hasil["total_biaya"],
-                    0
-                )
+                round(hasil["total_biaya"], 0)
             ],
-
             [
                 "Harga BBM (Rp/liter)",
                 hasil["harga_bbm"]
             ],
-
             [
                 "Biaya Supir (Rp/jam)",
                 hasil["biaya_supir"]
             ],
-
             [
                 "Tanggal & Jam Hasil",
                 hasil["timestamp"]
             ],
+        ]
 
-        ]:
-
+        for row in rows:
             hws.append(row)
 
         hws.append([])
@@ -925,38 +1099,15 @@ def make_download_file():
             hws.append([
                 r["kendaraan"],
                 r["jenis"],
-                " → ".join(
-                    r["route"]
-                ),
+                " → ".join(r["route"]),
                 r["muatan"],
-                round(
-                    r["utilisasi"],
-                    2
-                ),
-                round(
-                    r["jarak"],
-                    3
-                ),
-                round(
-                    r["waktu"],
-                    1
-                ),
-                round(
-                    r["bbm"],
-                    2
-                ),
-                round(
-                    r["biaya_bbm"],
-                    0
-                ),
-                round(
-                    r["biaya_supir"],
-                    0
-                ),
-                round(
-                    r["biaya"],
-                    0
-                ),
+                round(r["utilisasi"], 2),
+                round(r["jarak"], 3),
+                round(r["waktu"], 1),
+                round(r["bbm"], 2),
+                round(r["biaya_bbm"], 0),
+                round(r["biaya_supir"], 0),
+                round(r["biaya"], 0)
             ])
 
         style_sheet(hws)
@@ -974,7 +1125,6 @@ def make_download_file():
             "J": 20,
             "K": 24
         }.items():
-
             hws.column_dimensions[c].width = w
 
     fd, path = tempfile.mkstemp(
@@ -989,7 +1139,31 @@ def make_download_file():
 
 
 # ============================================================
-# ROUTES
+# CONTEXT
+# ============================================================
+
+def page_context(**extra):
+
+    context = {
+        "active": ACTIVE,
+        "now": now_text(),
+        "can_undo": bool(HISTORY),
+        "can_redo": bool(REDO_STACK),
+        "import_preview": IMPORT_PREVIEW,
+        "import_total": len(IMPORT_PREVIEW),
+        "import_demand": sum(
+            float(o["permintaan"])
+            for o in IMPORT_PREVIEW
+        ),
+    }
+
+    context.update(extra)
+
+    return context
+
+
+# ============================================================
+# HALAMAN UTAMA
 # ============================================================
 
 @app.route("/")
@@ -997,12 +1171,13 @@ def index():
 
     return render_template(
         "index.html",
-        active=ACTIVE,
-        now=now_text(),
-        can_undo=bool(HISTORY),
-        can_redo=bool(REDO_STACK),
+        **page_context()
     )
 
+
+# ============================================================
+# GUDANG
+# ============================================================
 
 @app.post("/simpan-gudang")
 def simpan_gudang():
@@ -1033,22 +1208,39 @@ def simpan_gudang():
     )
 
 
+# ============================================================
+# ARMADA
+# ============================================================
+
 @app.post("/simpan-armada")
 def simpan_armada():
 
-    jumlah = int(
-        request.form.get(
-            "jumlah_kendaraan",
-            3
-        )
-    )
+    try:
 
-    kapasitas = float(
-        request.form.get(
-            "kapasitas",
-            5000
+        jumlah = int(
+            request.form.get(
+                "jumlah_kendaraan",
+                3
+            )
         )
-    )
+
+        kapasitas = float(
+            request.form.get(
+                "kapasitas",
+                5000
+            )
+        )
+
+    except Exception:
+
+        flash(
+            "Jumlah kendaraan dan kapasitas harus berupa angka.",
+            "error"
+        )
+
+        return redirect(
+            url_for("index") + "#armada"
+        )
 
     if jumlah < 1 or kapasitas <= 0:
 
@@ -1075,20 +1267,20 @@ def simpan_armada():
     )
 
 
+# ============================================================
+# PENGATURAN
+# ============================================================
+
 @app.post("/simpan-pengaturan")
 def simpan_pengaturan():
 
     harga_bbm = num(
-        request.form.get(
-            "harga_bbm"
-        ),
+        request.form.get("harga_bbm"),
         6800
     )
 
     biaya_supir = num(
-        request.form.get(
-            "biaya_supir"
-        ),
+        request.form.get("biaya_supir"),
         25000
     )
 
@@ -1117,6 +1309,10 @@ def simpan_pengaturan():
     )
 
 
+# ============================================================
+# OUTLET MANUAL
+# ============================================================
+
 @app.post("/simpan-outlet")
 def simpan_outlet():
 
@@ -1133,9 +1329,7 @@ def simpan_outlet():
     )
 
     permintaan = num(
-        request.form.get(
-            "permintaan"
-        )
+        request.form.get("permintaan")
     )
 
     if (
@@ -1211,6 +1405,10 @@ def simpan_outlet():
     )
 
 
+# ============================================================
+# HAPUS OUTLET
+# ============================================================
+
 @app.get("/hapus/<kode>")
 def hapus_outlet(kode):
 
@@ -1255,8 +1453,140 @@ def hapus_outlet(kode):
     )
 
 
+# ============================================================
+# IMPORT EXCEL - PREVIEW
+# ============================================================
+
+@app.post("/import-excel")
+def import_excel():
+
+    global IMPORT_PREVIEW
+
+    file_excel = request.files.get(
+        "file_excel"
+    )
+
+    try:
+
+        preview = read_retailer_excel(
+            file_excel
+        )
+
+        IMPORT_PREVIEW = copy.deepcopy(
+            preview
+        )
+
+        total_demand = sum(
+            float(o["permintaan"])
+            for o in IMPORT_PREVIEW
+        )
+
+        flash(
+            f"Excel berhasil dibaca. "
+            f"{len(IMPORT_PREVIEW)} outlet siap diperiksa "
+            f"dengan total permintaan "
+            f"{total_demand:,.0f} kg.",
+            "success"
+        )
+
+    except Exception as e:
+
+        IMPORT_PREVIEW = []
+
+        flash(
+            f"Import Excel gagal: {e}",
+            "error"
+        )
+
+    return redirect(
+        url_for("index") + "#outlet"
+    )
+
+
+# ============================================================
+# KONFIRMASI IMPORT
+# ============================================================
+
+@app.post("/konfirmasi-import")
+def konfirmasi_import():
+
+    global IMPORT_PREVIEW
+
+    if not IMPORT_PREVIEW:
+
+        flash(
+            "Belum ada data Excel yang dapat dikonfirmasi.",
+            "error"
+        )
+
+        return redirect(
+            url_for("index") + "#outlet"
+        )
+
+    save_history()
+
+    ACTIVE["outlet"] = copy.deepcopy(
+        IMPORT_PREVIEW
+    )
+
+    ACTIVE["outlet"].sort(
+        key=lambda x: x["kode"]
+    )
+
+    ACTIVE["hasil"] = None
+    ACTIVE["api_status"] = None
+    ACTIVE["last_process"] = None
+
+    jumlah = len(ACTIVE["outlet"])
+
+    total = sum(
+        float(o["permintaan"])
+        for o in ACTIVE["outlet"]
+    )
+
+    IMPORT_PREVIEW = []
+
+    flash(
+        f"Import Excel berhasil dikonfirmasi. "
+        f"{jumlah} outlet aktif dengan total permintaan "
+        f"{total:,.0f} kg.",
+        "success"
+    )
+
+    return redirect(
+        url_for("index") + "#outlet"
+    )
+
+
+# ============================================================
+# BATAL IMPORT
+# ============================================================
+
+@app.post("/batalkan-import")
+def batalkan_import():
+
+    global IMPORT_PREVIEW
+
+    IMPORT_PREVIEW = []
+
+    flash(
+        "Preview import Excel dibatalkan.",
+        "success"
+    )
+
+    return redirect(
+        url_for("index") + "#outlet"
+    )
+
+
+# ============================================================
+# HAPUS SEMUA DATA
+# ============================================================
+
 @app.post("/hapus-semua-data")
 def hapus_semua_data():
+
+    global IMPORT_PREVIEW
 
     save_history()
 
@@ -1278,6 +1608,8 @@ def hapus_semua_data():
     ACTIVE["api_status"] = None
     ACTIVE["last_process"] = None
 
+    IMPORT_PREVIEW = []
+
     flash(
         "Semua data input aktif berhasil dihapus.",
         "success"
@@ -1287,6 +1619,10 @@ def hapus_semua_data():
         url_for("index") + "#reset"
     )
 
+
+# ============================================================
+# UNDO
+# ============================================================
 
 @app.post("/undo")
 def undo_action():
@@ -1310,6 +1646,10 @@ def undo_action():
     )
 
 
+# ============================================================
+# REDO
+# ============================================================
+
 @app.post("/redo")
 def redo_action():
 
@@ -1332,6 +1672,10 @@ def redo_action():
     )
 
 
+# ============================================================
+# HITUNG API
+# ============================================================
+
 @app.post("/hitung")
 def hitung():
 
@@ -1349,9 +1693,7 @@ def hitung():
     except Exception as e:
 
         if HISTORY:
-            restore(
-                HISTORY.pop()
-            )
+            restore(HISTORY.pop())
 
         flash(
             f"Perhitungan API gagal: {e}",
@@ -1362,6 +1704,10 @@ def hitung():
         url_for("index") + "#hitung"
     )
 
+
+# ============================================================
+# OPTIMASI
+# ============================================================
 
 @app.post("/optimasi")
 def optimasi():
@@ -1396,19 +1742,15 @@ def optimasi():
 
         return render_template(
             "index.html",
-            active=ACTIVE,
-            now=now_text(),
-            can_undo=bool(HISTORY),
-            can_redo=bool(REDO_STACK),
-            auto_result=True,
+            **page_context(
+                auto_result=True
+            )
         )
 
     except Exception as e:
 
         if HISTORY:
-            restore(
-                HISTORY.pop()
-            )
+            restore(HISTORY.pop())
 
         flash(
             f"Optimasi gagal: {e}",
@@ -1419,6 +1761,10 @@ def optimasi():
             url_for("index") + "#optimasi"
         )
 
+
+# ============================================================
+# DOWNLOAD
+# ============================================================
 
 @app.get("/download")
 def download():
@@ -1476,12 +1822,10 @@ if __name__ == "__main__":
     print(
         "Data input aktif hanya disimpan sementara di memori."
     )
+    print(
+        "Fitur import Excel outlet telah aktif."
+    )
     print("=" * 65)
-
-    # Jika dijalankan di SnapDeploy/server,
-    # gunakan PORT yang diberikan oleh server.
-    # Jika dijalankan di laptop,
-    # gunakan port 5000 sebagai default.
 
     port = int(
         os.environ.get(
