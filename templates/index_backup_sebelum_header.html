@@ -49,60 +49,71 @@ a{
     color:inherit;
 }
 
-
-/* ============================================================
-   HEADER POLTRADA
-   BANNER DITAMPILKAN UTUH DAN PROPORSIONAL
-   ============================================================ */
-
 .topbar{
+    height:112px;
     position:relative;
-    display:block;
-    width:100%;
-    height:auto;
-    min-height:0;
-    max-height:none;
-    margin:0;
-    padding:0;
     overflow:hidden;
-    background:#ffffff;
-    line-height:0;
+    color:#fff;
+    background:
+        linear-gradient(
+            90deg,
+            rgba(4,65,120,.98),
+            rgba(8,112,197,.92)
+        );
 }
 
-.topbar .poltrada-banner{
-    position:relative;
-    display:block;
-    width:100%;
-    height:auto;
-    min-width:0;
-    min-height:0;
-    max-width:none;
-    max-height:none;
+.topbar-inner{
+    max-width:1440px;
+    margin:auto;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 28px;
+}
+
+.brand{
+    display:flex;
+    align-items:center;
+    gap:16px;
+}
+
+.logo-box{
+    width:58px;
+    height:58px;
+    border-radius:12px;
+    background:#fff;
+    color:var(--blue);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:900;
+    font-size:17px;
+    box-shadow:0 8px 20px rgba(0,0,0,.15);
+}
+
+.brand h1{
     margin:0;
-    padding:0;
-    border:0;
-    outline:0;
-    object-fit:initial;
-    object-position:initial;
-    box-sizing:border-box;
+    font-size:17px;
+    letter-spacing:.7px;
+    font-weight:800;
 }
 
+.brand p{
+    margin:2px 0 0;
+    font-size:9px;
+    letter-spacing:1.1px;
+    font-weight:700;
+    opacity:.88;
+}
 
-/* ============================================================
-   HEADER LAMA DINONAKTIFKAN
-   ============================================================ */
-
-.topbar-inner,
-.brand,
-.logo-box,
 .header-right{
-    display:none !important;
+    text-align:right;
+    font-size:10px;
+    line-height:1.5;
+    letter-spacing:1.4px;
+    font-weight:800;
 }
-
-
-/* ============================================================
-   LAYOUT
-   ============================================================ */
 
 .layout{
     display:flex;
@@ -389,7 +400,6 @@ a{
     color:#52718b;
     line-height:1.5;
 }
-
 
 /* ============================================================
    IMPORT EXCEL
@@ -808,11 +818,6 @@ tr:hover td{
     gap:10px;
 }
 
-
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
-
 @media(max-width:900px){
 
     .sidebar{
@@ -839,24 +844,19 @@ tr:hover td{
     }
 }
 
-
 @media(max-width:700px){
 
     .topbar{
-        width:100%;
         height:auto;
-        min-height:0;
-        max-height:none;
-        overflow:hidden;
+        min-height:105px;
     }
 
-    .topbar .poltrada-banner{
-        width:100%;
-        height:auto;
-        min-height:0;
-        max-height:none;
-        display:block;
-        object-fit:initial;
+    .topbar-inner{
+        padding:17px;
+    }
+
+    .header-right{
+        display:none;
     }
 
     .layout{
@@ -912,27 +912,39 @@ tr:hover td{
         flex-direction:column;
     }
 }
-
 </style>
 </head>
 
 <body>
 
-
-<!-- ============================================================
-     HEADER
-     ============================================================ -->
-
 <header class="topbar">
+    <div class="topbar-inner">
 
-    <img
-        class="poltrada-banner"
-        src="{{ url_for('static', filename='header_poltrada_web_final.png') }}"
-        alt="Sistem Optimasi Rute Distribusi - Politeknik Transportasi Darat Bali"
-    >
+        <div class="brand">
 
+            <div class="logo-box">
+                PL
+            </div>
+
+            <div>
+                <h1>SISTEM OPTIMASI RUTE DISTRIBUSI</h1>
+
+                <p>D III MANAJEMEN LOGISTIK</p>
+
+                <p>
+                    POLITEKNIK TRANSPORTASI DARAT BALI
+                </p>
+            </div>
+
+        </div>
+
+        <div class="header-right">
+            LOGISTICS FOR<br>
+            A BETTER TOMORROW
+        </div>
+
+    </div>
 </header>
-
 
 <div class="layout">
 
@@ -998,11 +1010,9 @@ tr:hover td{
 
 </aside>
 
-
 <main class="main">
 
 <div class="content">
-
 
 {% with messages = get_flashed_messages(with_categories=true) %}
 
@@ -1026,9 +1036,7 @@ tr:hover td{
 {% endwith %}
 
 
-<!-- ============================================================
-     BERANDA
-     ============================================================ -->
+<!-- BERANDA -->
 
 <section
     id="beranda"
@@ -1052,7 +1060,6 @@ tr:hover td{
 
     </div>
 
-
     <div class="status-box">
 
         <div class="status-title">
@@ -1064,16 +1071,13 @@ tr:hover td{
         </div>
 
         <div class="status-time">
-
             Tanggal &amp; Jam:
-
             <span
                 class="live-clock"
                 id="liveClock"
             >
                 {{ now }}
             </span>
-
         </div>
 
     </div>
@@ -1081,9 +1085,7 @@ tr:hover td{
 </section>
 
 
-<!-- ============================================================
-     GUDANG
-     ============================================================ -->
+<!-- GUDANG -->
 
 <section
     id="gudang"
@@ -1101,7 +1103,6 @@ tr:hover td{
         </h3>
 
     </div>
-
 
     <form
         method="post"
@@ -1125,7 +1126,6 @@ tr:hover td{
 
             </div>
 
-
             <div class="field">
 
                 <label>
@@ -1143,7 +1143,6 @@ tr:hover td{
 
         </div>
 
-
         <div class="actions">
 
             <button
@@ -1154,7 +1153,6 @@ tr:hover td{
             </button>
 
         </div>
-
 
         <div class="helper">
 
@@ -1177,9 +1175,7 @@ tr:hover td{
 </section>
 
 
-<!-- ============================================================
-     ARMADA
-     ============================================================ -->
+<!-- ARMADA -->
 
 <section
     id="armada"
@@ -1198,14 +1194,10 @@ tr:hover td{
 
     </div>
 
-
     <p class="desc">
-
         Masukkan jumlah kendaraan dan kapasitas kendaraan
         yang akan digunakan pada proses VRP.
-
     </p>
-
 
     <form
         method="post"
@@ -1231,7 +1223,6 @@ tr:hover td{
 
             </div>
 
-
             <div class="field">
 
                 <label>
@@ -1250,7 +1241,6 @@ tr:hover td{
 
         </div>
 
-
         <div class="actions">
 
             <button
@@ -1267,9 +1257,7 @@ tr:hover td{
 </section>
 
 
-<!-- ============================================================
-     OUTLET
-     ============================================================ -->
+<!-- OUTLET -->
 
 <section
     id="outlet"
@@ -1289,235 +1277,413 @@ tr:hover td{
     </div>
 
 
-<form
-    id="outletForm"
-    method="post"
-    action="{{ url_for('simpan_outlet') }}"
->
-
-
-    <div class="form-grid three">
-
-        <div class="field">
-
-            <label>
-                Kode Outlet
-            </label>
-
-            <input
-                id="kode"
-                name="kode"
-                placeholder="A"
-                required
-            >
-
-        </div>
-
-
-        <div class="field">
-
-            <label>
-                Nama Outlet
-            </label>
-
-            <input
-                id="nama"
-                name="nama"
-                placeholder="Indomaret ..."
-                required
-            >
-
-        </div>
-
-
-        <div class="field">
-
-            <label>
-                Permintaan (kg)
-            </label>
-
-            <input
-                id="permintaan"
-                type="number"
-                min="1"
-                step="0.01"
-                name="permintaan"
-                placeholder="Contoh: 800"
-                required
-            >
-
-        </div>
-
-    </div>
-
-
-    <div
-        class="field"
-        style="margin-top:12px"
-    >
-
-        <label>
-            Alamat Outlet
-        </label>
-
-        <input
-            id="alamat"
-            name="alamat"
-            placeholder="Alamat lengkap outlet"
-            required
-        >
-
-    </div>
-
-
-    <div class="actions">
-
-        <button
-            id="outletBtn"
-            class="btn green"
-            type="submit"
-        >
-            Tambah / Simpan Outlet
-        </button>
-
-
-        <button
-            type="button"
-            id="cancelEdit"
-            class="btn light hidden"
-            onclick="resetOutlet()"
-        >
-            Batal Edit
-        </button>
-
-    </div>
-
-
-    <div class="callout">
-
-        Gunakan alamat selengkap mungkin agar geocoding dan
-        perhitungan jarak melalui jaringan jalan lebih akurat.
-
-    </div>
-
-</form>
-
-
-<!-- ============================================================
-     IMPORT EXCEL
-     ============================================================ -->
-
-<div class="import-box">
-
-    <div class="import-title">
-
-        <span>📊</span>
-
-        Import Data Outlet dari Excel
-
-    </div>
-
-
-    <div class="import-subtitle">
-
-        Masukkan banyak outlet sekaligus melalui file Excel.
-        Data akan ditampilkan dalam preview terlebih dahulu
-        sebelum menjadi data outlet aktif.
-
-    </div>
-
+    <!-- INPUT MANUAL -->
 
     <form
+        id="outletForm"
         method="post"
-        action="{{ url_for('import_excel') }}"
-        enctype="multipart/form-data"
+        action="{{ url_for('simpan_outlet') }}"
     >
 
-        <div class="file-row">
+        <div class="form-grid three">
+
+            <div class="field">
+
+                <label>
+                    Kode Outlet
+                </label>
+
+                <input
+                    id="kode"
+                    name="kode"
+                    placeholder="A"
+                    required
+                >
+
+            </div>
+
+            <div class="field">
+
+                <label>
+                    Nama Outlet
+                </label>
+
+                <input
+                    id="nama"
+                    name="nama"
+                    placeholder="Indomaret ..."
+                    required
+                >
+
+            </div>
+
+            <div class="field">
+
+                <label>
+                    Permintaan (kg)
+                </label>
+
+                <input
+                    id="permintaan"
+                    type="number"
+                    min="1"
+                    step="0.01"
+                    name="permintaan"
+                    placeholder="Contoh: 800"
+                    required
+                >
+
+            </div>
+
+        </div>
+
+        <div
+            class="field"
+            style="margin-top:12px"
+        >
+
+            <label>
+                Alamat Outlet
+            </label>
 
             <input
-                class="file-input"
-                type="file"
-                name="file_excel"
-                accept=".xlsx,.xlsm"
+                id="alamat"
+                name="alamat"
+                placeholder="Alamat lengkap outlet"
                 required
             >
 
+        </div>
+
+        <div class="actions">
 
             <button
+                id="outletBtn"
+                class="btn green"
                 type="submit"
-                class="btn excel"
             >
-                Upload &amp; Preview Excel
+                Tambah / Simpan Outlet
             </button>
+
+            <button
+                type="button"
+                id="cancelEdit"
+                class="btn light hidden"
+                onclick="resetOutlet()"
+            >
+                Batal Edit
+            </button>
+
+        </div>
+
+        <div class="callout">
+
+            Gunakan alamat selengkap mungkin agar geocoding dan
+            perhitungan jarak melalui jaringan jalan lebih akurat.
 
         </div>
 
     </form>
 
 
-    <div class="excel-format">
+    <!-- ========================================================
+         IMPORT EXCEL
+         ======================================================== -->
 
-        <strong>
-            Format kolom yang digunakan:
-        </strong>
+    <div class="import-box">
 
-        KODE |
-        NAMA INDOMARET |
-        ALAMAT |
-        PERMINTAAN
+        <div class="import-title">
 
-        <br>
+            <span>📊</span>
 
-        File yang diterima:
-        <strong>.xlsx</strong>
-        atau
-        <strong>.xlsm</strong>
+            Import Data Outlet dari Excel
 
-    </div>
+        </div>
 
-</div>
+        <div class="import-subtitle">
 
+            Masukkan banyak outlet sekaligus melalui file Excel.
+            Data akan ditampilkan dalam preview terlebih dahulu
+            sebelum menjadi data outlet aktif.
 
-<!-- ============================================================
-     PREVIEW EXCEL
-     ============================================================ -->
+        </div>
 
-{% if import_preview %}
+        <form
+            method="post"
+            action="{{ url_for('import_excel') }}"
+            enctype="multipart/form-data"
+        >
 
-<div class="preview-box">
+            <div class="file-row">
 
-    <div class="preview-header">
+                <input
+                    class="file-input"
+                    type="file"
+                    name="file_excel"
+                    accept=".xlsx,.xlsm"
+                    required
+                >
 
-        <div>
-
-            <strong>
-                Preview Data Excel
-            </strong>
-
-
-            <div class="preview-summary">
-
-                {{ import_total }}
-                outlet |
-
-                Total permintaan:
-
-                {{ "{:,.0f}".format(import_demand).replace(",", ".") }}
-
-                kg
+                <button
+                    type="submit"
+                    class="btn excel"
+                >
+                    Upload &amp; Preview Excel
+                </button>
 
             </div>
+
+        </form>
+
+        <div class="excel-format">
+
+            <strong>
+                Format kolom yang digunakan:
+            </strong>
+
+            KODE |
+            NAMA INDOMARET |
+            ALAMAT |
+            PERMINTAAN
+
+            <br>
+
+            File yang diterima:
+            <strong>.xlsx</strong>
+            atau
+            <strong>.xlsm</strong>
 
         </div>
 
     </div>
 
 
+    <!-- ========================================================
+         PREVIEW EXCEL
+         ======================================================== -->
+
+    {% if import_preview %}
+
+    <div class="preview-box">
+
+        <div class="preview-header">
+
+            <div>
+
+                <strong>
+                    Preview Data Excel
+                </strong>
+
+                <div class="preview-summary">
+
+                    {{ import_total }}
+                    outlet |
+
+                    Total permintaan:
+                    {{ "{:,.0f}".format(import_demand).replace(",", ".") }}
+                    kg
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div
+            class="table-wrap"
+            style="margin-top:0;border:0;border-radius:0"
+        >
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            No
+                        </th>
+
+                        <th>
+                            Kode
+                        </th>
+
+                        <th>
+                            Nama Indomaret
+                        </th>
+
+                        <th>
+                            Alamat
+                        </th>
+
+                        <th>
+                            Permintaan
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for o in import_preview %}
+
+                    <tr>
+
+                        <td>
+                            {{ loop.index }}
+                        </td>
+
+                        <td class="code">
+                            {{ o.kode }}
+                        </td>
+
+                        <td>
+                            {{ o.nama }}
+                        </td>
+
+                        <td>
+                            {{ o.alamat }}
+                        </td>
+
+                        <td>
+                            {{ "{:,.0f}".format(o.permintaan).replace(",", ".") }}
+                            kg
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <div class="preview-actions">
+
+            <form
+                method="post"
+                action="{{ url_for('konfirmasi_import') }}"
+            >
+
+                <button
+                    class="btn green"
+                    type="submit"
+                >
+                    ✓ Konfirmasi Import
+                </button>
+
+            </form>
+
+            <form
+                method="post"
+                action="{{ url_for('batalkan_import') }}"
+            >
+
+                <button
+                    class="btn light"
+                    type="submit"
+                >
+                    Batalkan
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+
+    <!-- DATA OUTLET AKTIF -->
+
     <div
-        class="table-wrap"
-        style="margin-top:0;border:0;border-radius:0"
+        class="section-head"
+        style="margin-top:20px"
     >
+
+        <div class="section-index">
+            04
+        </div>
+
+        <h3>
+            Data Outlet Aktif
+        </h3>
+
+    </div>
+
+    <div class="helper">
+
+        Data di bawah adalah
+        <b>data yang sedang diinput pengguna</b>.
+        Data dapat berasal dari input manual maupun import Excel.
+
+    </div>
+
+
+    <!-- UNDO REDO -->
+
+    <div class="undo-panel">
+
+        <div class="undo-label">
+
+            <b>
+                Riwayat perubahan data
+            </b>
+
+            <br>
+
+            Batalkan atau kembalikan perubahan terakhir.
+
+        </div>
+
+        <div class="undo-buttons">
+
+            <form
+                method="post"
+                action="{{ url_for('undo_action') }}"
+            >
+
+                <button
+                    class="undo-btn"
+                    type="submit"
+                    {% if not can_undo %}
+                        disabled
+                    {% endif %}
+                >
+                    ↶ &nbsp; Undo
+                </button>
+
+            </form>
+
+            <form
+                method="post"
+                action="{{ url_for('redo_action') }}"
+            >
+
+                <button
+                    class="undo-btn"
+                    type="submit"
+                    {% if not can_redo %}
+                        disabled
+                    {% endif %}
+                >
+                    ↷ &nbsp; Redo
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- TABLE OUTLET -->
+
+    <div class="table-wrap">
 
         <table>
 
@@ -1534,7 +1700,7 @@ tr:hover td{
                     </th>
 
                     <th>
-                        Nama Indomaret
+                        Nama Outlet
                     </th>
 
                     <th>
@@ -1545,14 +1711,21 @@ tr:hover td{
                         Permintaan
                     </th>
 
+                    <th>
+                        Koordinat
+                    </th>
+
+                    <th>
+                        Aksi
+                    </th>
+
                 </tr>
 
             </thead>
 
-
             <tbody>
 
-                {% for o in import_preview %}
+                {% for o in active.outlet %}
 
                 <tr>
 
@@ -1573,10 +1746,64 @@ tr:hover td{
                     </td>
 
                     <td>
-
                         {{ "{:,.0f}".format(o.permintaan).replace(",", ".") }}
-
                         kg
+                    </td>
+
+                    <td class="coord">
+
+                        {% if o.lat is not none %}
+
+                            {{ "%.5f"|format(o.lat) }},
+                            {{ "%.5f"|format(o.lon) }}
+
+                        {% else %}
+
+                            Belum dihitung
+
+                        {% endif %}
+
+                    </td>
+
+                    <td style="white-space:nowrap">
+
+                        <button
+                            type="button"
+                            class="inline edit"
+                            onclick='editOutlet({{ o|tojson }})'
+                        >
+                            Edit
+                        </button>
+
+                        <a
+                            class="inline del"
+                            href="{{ url_for('hapus_outlet', kode=o.kode) }}"
+                            onclick="return confirm('Hapus outlet {{ o.kode }}?')"
+                        >
+                            Hapus
+                        </a>
+
+                    </td>
+
+                </tr>
+
+                {% else %}
+
+                <tr>
+
+                    <td
+                        colspan="7"
+                        style="
+                            text-align:center;
+                            color:#8794a0;
+                            padding:18px
+                        "
+                    >
+
+                        Belum ada data outlet.
+
+                        Silakan masukkan data manual
+                        atau import data dari Excel.
 
                     </td>
 
@@ -1590,292 +1817,10 @@ tr:hover td{
 
     </div>
 
-
-    <div class="preview-actions">
-
-        <form
-            method="post"
-            action="{{ url_for('konfirmasi_import') }}"
-        >
-
-            <button
-                class="btn green"
-                type="submit"
-            >
-                ✓ Konfirmasi Import
-            </button>
-
-        </form>
-
-
-        <form
-            method="post"
-            action="{{ url_for('batalkan_import') }}"
-        >
-
-            <button
-                class="btn light"
-                type="submit"
-            >
-                Batalkan
-            </button>
-
-        </form>
-
-    </div>
-
-</div>
-
-{% endif %}
-
-
-<!-- ============================================================
-     DATA OUTLET AKTIF
-     ============================================================ -->
-
-<div
-    class="section-head"
-    style="margin-top:20px"
->
-
-    <div class="section-index">
-        04
-    </div>
-
-    <h3>
-        Data Outlet Aktif
-    </h3>
-
-</div>
-
-
-<div class="helper">
-
-    Data di bawah adalah
-    <b>data yang sedang diinput pengguna</b>.
-
-    Data dapat berasal dari input manual maupun import Excel.
-
-</div>
-
-
-<!-- ============================================================
-     UNDO REDO
-     ============================================================ -->
-
-<div class="undo-panel">
-
-    <div class="undo-label">
-
-        <b>
-            Riwayat perubahan data
-        </b>
-
-        <br>
-
-        Batalkan atau kembalikan perubahan terakhir.
-
-    </div>
-
-
-    <div class="undo-buttons">
-
-        <form
-            method="post"
-            action="{{ url_for('undo_action') }}"
-        >
-
-            <button
-                class="undo-btn"
-                type="submit"
-                {% if not can_undo %}
-                    disabled
-                {% endif %}
-            >
-                ↶ &nbsp; Undo
-            </button>
-
-        </form>
-
-
-        <form
-            method="post"
-            action="{{ url_for('redo_action') }}"
-        >
-
-            <button
-                class="undo-btn"
-                type="submit"
-                {% if not can_redo %}
-                    disabled
-                {% endif %}
-            >
-                ↷ &nbsp; Redo
-            </button>
-
-        </form>
-
-    </div>
-
-</div>
-
-
-<!-- ============================================================
-     TABLE OUTLET
-     ============================================================ -->
-
-<div class="table-wrap">
-
-    <table>
-
-        <thead>
-
-            <tr>
-
-                <th>
-                    No
-                </th>
-
-                <th>
-                    Kode
-                </th>
-
-                <th>
-                    Nama Outlet
-                </th>
-
-                <th>
-                    Alamat
-                </th>
-
-                <th>
-                    Permintaan
-                </th>
-
-                <th>
-                    Koordinat
-                </th>
-
-                <th>
-                    Aksi
-                </th>
-
-            </tr>
-
-        </thead>
-
-
-        <tbody>
-
-            {% for o in active.outlet %}
-
-            <tr>
-
-                <td>
-                    {{ loop.index }}
-                </td>
-
-
-                <td class="code">
-                    {{ o.kode }}
-                </td>
-
-
-                <td>
-                    {{ o.nama }}
-                </td>
-
-
-                <td>
-                    {{ o.alamat }}
-                </td>
-
-
-                <td>
-
-                    {{ "{:,.0f}".format(o.permintaan).replace(",", ".") }}
-
-                    kg
-
-                </td>
-
-
-                <td class="coord">
-
-                    {% if o.lat is not none %}
-
-                        {{ "%.5f"|format(o.lat) }},
-                        {{ "%.5f"|format(o.lon) }}
-
-                    {% else %}
-
-                        Belum dihitung
-
-                    {% endif %}
-
-                </td>
-
-
-                <td style="white-space:nowrap">
-
-                    <button
-                        type="button"
-                        class="inline edit"
-                        onclick='editOutlet({{ o|tojson }})'
-                    >
-                        Edit
-                    </button>
-
-
-                    <a
-                        class="inline del"
-                        href="{{ url_for('hapus_outlet', kode=o.kode) }}"
-                        onclick="return confirm('Hapus outlet {{ o.kode }}?')"
-                    >
-                        Hapus
-                    </a>
-
-                </td>
-
-            </tr>
-
-
-            {% else %}
-
-            <tr>
-
-                <td
-                    colspan="7"
-                    style="
-                        text-align:center;
-                        color:#8794a0;
-                        padding:18px
-                    "
-                >
-
-                    Belum ada data outlet.
-
-                    Silakan masukkan data manual
-                    atau import data dari Excel.
-
-                </td>
-
-            </tr>
-
-            {% endfor %}
-
-        </tbody>
-
-    </table>
-
-</div>
-
 </section>
 
 
-<!-- ============================================================
-     HITUNG API
-     ============================================================ -->
+<!-- HITUNG API -->
 
 <section
     id="hitung"
@@ -1894,7 +1839,6 @@ tr:hover td{
 
     </div>
 
-
     <p class="desc">
 
         Alamat input diproses melalui Nominatim untuk memperoleh
@@ -1902,7 +1846,6 @@ tr:hover td{
         perjalanan berdasarkan jaringan jalan.
 
     </p>
-
 
     <form
         method="post"
@@ -1922,7 +1865,6 @@ tr:hover td{
 
     </form>
 
-
     <div class="helper">
 
         Hasil API digunakan langsung sebagai dasar optimasi.
@@ -1932,9 +1874,7 @@ tr:hover td{
 </section>
 
 
-<!-- ============================================================
-     OPTIMASI
-     ============================================================ -->
+<!-- OPTIMASI -->
 
 <section
     id="optimasi"
@@ -1953,7 +1893,6 @@ tr:hover td{
 
     </div>
 
-
     <p class="desc">
 
         Sistem membagi outlet berdasarkan kapasitas kendaraan
@@ -1961,7 +1900,6 @@ tr:hover td{
         setiap kendaraan menggunakan Nearest Neighbor.
 
     </p>
-
 
     <form
         method="post"
@@ -1983,7 +1921,6 @@ tr:hover td{
 
             </div>
 
-
             <div class="field">
 
                 <label>
@@ -1998,7 +1935,6 @@ tr:hover td{
             </div>
 
         </div>
-
 
         <div class="actions">
 
@@ -2016,9 +1952,7 @@ tr:hover td{
 </section>
 
 
-<!-- ============================================================
-     DOWNLOAD
-     ============================================================ -->
+<!-- DOWNLOAD -->
 
 <section
     id="unduh"
@@ -2037,7 +1971,6 @@ tr:hover td{
 
     </div>
 
-
     <div class="download-box">
 
         <p>
@@ -2047,7 +1980,6 @@ tr:hover td{
 
         </p>
 
-
         <a
             href="{{ url_for('download') }}"
             class="btn blue"
@@ -2056,7 +1988,6 @@ tr:hover td{
         </a>
 
     </div>
-
 
     <div class="helper">
 
@@ -2068,9 +1999,7 @@ tr:hover td{
 </section>
 
 
-<!-- ============================================================
-     HASIL
-     ============================================================ -->
+<!-- HASIL -->
 
 <section
     id="hasil"
@@ -2092,9 +2021,7 @@ tr:hover td{
 
     {% if active.hasil %}
 
-
     <div class="kpi-grid">
-
 
         <div class="kpi">
 
@@ -2114,7 +2041,6 @@ tr:hover td{
 
         </div>
 
-
         <div class="kpi green">
 
             <span>
@@ -2133,7 +2059,6 @@ tr:hover td{
 
         </div>
 
-
         <div class="kpi yellow">
 
             <span>
@@ -2149,7 +2074,6 @@ tr:hover td{
             </strong>
 
         </div>
-
 
         <div class="kpi">
 
@@ -2169,7 +2093,6 @@ tr:hover td{
 
         </div>
 
-
         <div class="kpi green">
 
             <span>
@@ -2188,7 +2111,6 @@ tr:hover td{
 
         </div>
 
-
         <div class="kpi yellow">
 
             <span>
@@ -2206,20 +2128,17 @@ tr:hover td{
 
         </div>
 
-
     </div>
 
 
     <div class="result-note">
 
         Optimasi selesai pada
-
         <b>
             {{ active.hasil.timestamp }}
         </b>.
 
         Sumber matrix:
-
         <b>
             {{ active.hasil.api_status }}
         </b>.
@@ -2227,7 +2146,6 @@ tr:hover td{
         <br>
 
         Metode:
-
         <b>
             {{ active.hasil.metode }}
         </b>.
@@ -2237,12 +2155,9 @@ tr:hover td{
 
     {% for r in active.hasil.rute %}
 
-
     <div class="vehicle">
 
-
         <div class="vehicle-id">
-
 
             <div class="v-number">
 
@@ -2250,9 +2165,7 @@ tr:hover td{
 
             </div>
 
-
             <div>
-
 
                 <svg
                     class="truck"
@@ -2321,24 +2234,19 @@ tr:hover td{
 
                 </svg>
 
-
                 <b
                     style="
                         display:block;
                         font-size:9px
                     "
                 >
-
                     KENDARAAN
                     {{ "%02d"|format(r.kendaraan) }}
-
                 </b>
-
 
                 <small>
                     {{ r.jenis }}
                 </small>
-
 
             </div>
 
@@ -2347,11 +2255,9 @@ tr:hover td{
 
         <div class="vehicle-main">
 
-
             <div class="route-title">
                 Rute Distribusi
             </div>
-
 
             <div class="route">
 
@@ -2367,7 +2273,6 @@ tr:hover td{
 
 
             <div class="stats">
-
 
                 <div class="stat">
 
@@ -2387,7 +2292,6 @@ tr:hover td{
 
                 </div>
 
-
                 <div class="stat">
 
                     <span>
@@ -2403,7 +2307,6 @@ tr:hover td{
                     </b>
 
                 </div>
-
 
                 <div class="stat">
 
@@ -2423,7 +2326,6 @@ tr:hover td{
 
                 </div>
 
-
                 <div class="stat">
 
                     <span>
@@ -2440,7 +2342,6 @@ tr:hover td{
                     </b>
 
                 </div>
-
 
             </div>
 
@@ -2465,14 +2366,12 @@ tr:hover td{
 
         </div>
 
-
     </div>
 
     {% endfor %}
 
 
     {% else %}
-
 
     <div class="helper">
 
@@ -2483,15 +2382,12 @@ tr:hover td{
 
     </div>
 
-
     {% endif %}
 
 </section>
 
 
-<!-- ============================================================
-     RESET
-     ============================================================ -->
+<!-- RESET -->
 
 <section
     id="reset"
@@ -2510,13 +2406,11 @@ tr:hover td{
 
     </div>
 
-
     <div class="reset-box">
 
         <h4>
             Hapus dataset aktif
         </h4>
-
 
         <p>
 
@@ -2530,7 +2424,6 @@ tr:hover td{
         </p>
 
     </div>
-
 
     <form
         method="post"
@@ -2558,9 +2451,7 @@ tr:hover td{
 </section>
 
 
-<!-- ============================================================
-     PENGATURAN
-     ============================================================ -->
+<!-- PENGATURAN -->
 
 <section
     id="pengaturan"
@@ -2579,7 +2470,6 @@ tr:hover td{
 
     </div>
 
-
     <p class="desc">
 
         Atur parameter biaya yang digunakan sebagai pertimbangan
@@ -2587,14 +2477,12 @@ tr:hover td{
 
     </p>
 
-
     <form
         method="post"
         action="{{ url_for('simpan_pengaturan') }}"
     >
 
         <div class="setting-grid">
-
 
             <div class="field">
 
@@ -2613,7 +2501,6 @@ tr:hover td{
 
             </div>
 
-
             <div class="field">
 
                 <label>
@@ -2631,9 +2518,7 @@ tr:hover td{
 
             </div>
 
-
         </div>
-
 
         <div class="actions">
 
@@ -2648,7 +2533,6 @@ tr:hover td{
 
     </form>
 
-
     <div class="cost-summary">
 
         Perhitungan biaya menggunakan jarak hasil routing API
@@ -2659,7 +2543,6 @@ tr:hover td{
 
 </section>
 
-
 </div>
 
 </main>
@@ -2667,24 +2550,15 @@ tr:hover td{
 </div>
 
 
-<!-- ============================================================
-     FOOTER
-     ============================================================ -->
-
 <footer class="footer">
 
     <span>
-
         © 2026 D III Manajemen Logistik ·
         Politeknik Transportasi Darat Bali
-
     </span>
 
-
     <span>
-
         Sistem Optimasi Rute Distribusi
-
     </span>
 
 </footer>
@@ -2704,24 +2578,19 @@ const links = [
     ...document.querySelectorAll(".menu a")
 ];
 
-
 function setActive(){
 
     let current = "beranda";
 
     const y = window.scrollY + 150;
 
-
     sections.forEach(section => {
 
         if(section.offsetTop <= y){
-
             current = section.id;
-
         }
 
     });
-
 
     links.forEach(link => {
 
@@ -2737,12 +2606,10 @@ function setActive(){
 
 }
 
-
 window.addEventListener(
     "scroll",
     setActive
 );
-
 
 window.addEventListener(
     "load",
@@ -2759,26 +2626,20 @@ function editOutlet(o){
     document.getElementById("kode").value =
         o.kode || "";
 
-
     document.getElementById("nama").value =
         o.nama || "";
-
 
     document.getElementById("alamat").value =
         o.alamat || "";
 
-
     document.getElementById("permintaan").value =
         o.permintaan || "";
-
 
     document.getElementById("outletBtn").textContent =
         "Update / Simpan Outlet";
 
-
     document.getElementById("cancelEdit")
         .classList.remove("hidden");
-
 
     document.getElementById("outlet")
         .scrollIntoView({
@@ -2796,10 +2657,8 @@ function resetOutlet(){
 
     document.getElementById("outletForm").reset();
 
-
     document.getElementById("outletBtn").textContent =
         "Tambah / Simpan Outlet";
-
 
     document.getElementById("cancelEdit")
         .classList.add("hidden");
@@ -2816,52 +2675,39 @@ function updateClock(){
     const clock =
         document.getElementById("liveClock");
 
-
     if(!clock){
-
         return;
-
     }
 
-
     const now = new Date();
-
 
     const day =
         String(now.getDate()).padStart(2,"0");
 
-
     const month =
         String(now.getMonth() + 1).padStart(2,"0");
-
 
     const year =
         now.getFullYear();
 
-
     const hour =
         String(now.getHours()).padStart(2,"0");
-
 
     const minute =
         String(now.getMinutes()).padStart(2,"0");
 
-
     const second =
         String(now.getSeconds()).padStart(2,"0");
-
 
     clock.textContent =
         `${day}/${month}/${year} ${hour}:${minute}:${second}`;
 
 }
 
-
 setInterval(
     updateClock,
     1000
 );
-
 
 updateClock();
 
@@ -2881,7 +2727,6 @@ window.addEventListener(
 
                 const hasil =
                     document.getElementById("hasil");
-
 
                 if(hasil){
 
