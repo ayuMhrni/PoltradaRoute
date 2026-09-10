@@ -912,39 +912,225 @@ tr:hover td{
         flex-direction:column;
     }
 }
+
+
+/* ============================================================
+   POLTRADA HEADER
+   NATURAL IMAGE + BOTTOM CROP
+   ============================================================ */
+
+header.topbar{
+
+    position:relative !important;
+
+    display:block !important;
+
+    width:100% !important;
+
+    height:220px !important;
+
+    min-height:220px !important;
+
+    max-height:220px !important;
+
+    margin:0 !important;
+
+    padding:0 !important;
+
+    overflow:hidden !important;
+
+    background:#075da5 !important;
+
+    box-sizing:border-box !important;
+
+    line-height:0 !important;
+}
+
+
+/* ============================================================
+   BANNER
+   ============================================================ */
+
+/*
+   PENTING:
+   Tidak menggunakan object-fit: cover.
+
+   Gambar ditampilkan dengan:
+   width 100%
+   height auto
+
+   sehingga proporsi asli tetap terjaga.
+
+   Container header yang memotong
+   bagian BAWAH gambar.
+*/
+
+header.topbar .poltrada-banner{
+
+    position:absolute !important;
+
+    display:block !important;
+
+    left:0 !important;
+
+    top:0 !important;
+
+    width:100% !important;
+
+    height:auto !important;
+
+    min-height:0 !important;
+
+    max-height:none !important;
+
+    margin:0 !important;
+
+    padding:0 !important;
+
+    border:0 !important;
+
+    outline:0 !important;
+
+    object-fit:initial !important;
+
+    object-position:initial !important;
+
+    box-sizing:border-box !important;
+}
+
+
+/* ============================================================
+   HILANGKAN ELEMEN HEADER LAMA
+   ============================================================ */
+
+header.topbar .topbar-inner,
+header.topbar .brand,
+header.topbar .logo-box,
+header.topbar .header-right,
+header.topbar .poltrada-visual,
+header.topbar .poltrada-building,
+header.topbar .poltrada-statue,
+header.topbar .poltrada-cadet,
+header.topbar .poltrada-dots,
+header.topbar .hero-wave{
+
+    display:none !important;
+}
+
+
+/* ============================================================
+   DESKTOP BESAR
+   ============================================================ */
+
+@media(min-width:1400px){
+
+    header.topbar{
+
+        height:220px !important;
+
+        min-height:220px !important;
+
+        max-height:220px !important;
+    }
+}
+
+
+/* ============================================================
+   LAPTOP
+   ============================================================ */
+
+@media(max-width:1399px){
+
+    header.topbar{
+
+        height:210px !important;
+
+        min-height:210px !important;
+
+        max-height:210px !important;
+    }
+}
+
+
+/* ============================================================
+   TABLET
+   ============================================================ */
+
+@media(max-width:900px){
+
+    header.topbar{
+
+        height:185px !important;
+
+        min-height:185px !important;
+
+        max-height:185px !important;
+    }
+}
+
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media(max-width:600px){
+
+    header.topbar{
+
+        height:150px !important;
+
+        min-height:150px !important;
+
+        max-height:150px !important;
+    }
+}
+
 </style>
 </head>
 
 <body>
 
-<header class="topbar">
-    <div class="topbar-inner">
 
-        <div class="brand">
+<header
+    class="topbar"
+    style="
+        width:100% !important;
+        height:220px !important;
+        min-height:220px !important;
+        max-height:220px !important;
+        margin:0 !important;
+        padding:0 !important;
+        overflow:hidden !important;
+        background:#075da5 !important;
+        box-sizing:border-box !important;
+        line-height:0 !important;
+    "
+>
 
-            <div class="logo-box">
-                PL
-            </div>
+    <img
+        class="poltrada-banner"
+        src="{{ url_for('static', filename='header_poltrada_web_final.png') }}"
+        alt="Sistem Optimasi Rute Distribusi - Politeknik Transportasi Darat Bali"
+        style="
+            position:absolute !important;
+            display:block !important;
+            left:0 !important;
+            top:0 !important;
+            width:100% !important;
+            height:auto !important;
+            min-height:0 !important;
+            max-height:none !important;
+            margin:0 !important;
+            padding:0 !important;
+            border:0 !important;
+            outline:0 !important;
+            object-fit:initial !important;
+            object-position:initial !important;
+        "
+    >
 
-            <div>
-                <h1>SISTEM OPTIMASI RUTE DISTRIBUSI</h1>
-
-                <p>D III MANAJEMEN LOGISTIK</p>
-
-                <p>
-                    POLITEKNIK TRANSPORTASI DARAT BALI
-                </p>
-            </div>
-
-        </div>
-
-        <div class="header-right">
-            LOGISTICS FOR<br>
-            A BETTER TOMORROW
-        </div>
-
-    </div>
 </header>
+
 
 <div class="layout">
 
